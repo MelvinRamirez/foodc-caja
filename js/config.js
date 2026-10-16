@@ -1,7 +1,4 @@
-// API_URL placeholder: the backend (B1-B3) is implemented and tested in
-// FoodC, but not yet deployed to production (Phase 8, owner action). This
-// constant is updated to the real /exec URL once the backend is deployed.
-export const API_URL = 'https://script.google.com/macros/s/<DEPLOYMENT_ID>/exec';
+export const API_URL = 'https://script.google.com/macros/s/AKfycbzN9m1QXFS0IW7ervb4zbhK8AYJiHLXahur4QUPC-BPJYZrwaeAxwyJ3QY8nVRRpFqH/exec';
 export const POLL_INTERVAL_MS = 10000; // cashier screen; KDS stays at 5 s
 export const POLL_TIMEOUT_MS = 15000; // lock-free read
 export const VERIFY_TIMEOUT_MS = 15000; // no lock, no Sheets
