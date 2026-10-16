@@ -37,11 +37,20 @@ npm run build:css
 Este repositorio está en construcción, en orden (mismo patrón que `foodc-kds`):
 
 - **K1 (completo)**: scaffold y módulos puros de dominio (`store`, `api`, `pin`, `time`, `config`, `messages`, `queue`, `payment`, `close`, `actions`, `persistence`), sin DOM, sin service worker, sin nada desplegado.
-- **K2 (pendiente)**: `js/effects.js` — polling, runner de marcado Pagada, orquestación del cierre de día.
-- **K3 (pendiente)**: vistas, `index.html`, Tailwind, manifest/service worker instalable, deploy a GitHub Pages.
+- **K2 (completo)**: `js/effects.js` — polling, runner de marcado Pagada, orquestación del cierre de día.
+- **K3, parte A (completo)**: vistas (`js/views/*`), `js/main.js` (raíz de composición), `index.html`, CSS de Tailwind, íconos, `manifest.webmanifest` y `sw.js` instalables. Todo probado localmente (`npm test`, smoke de servidor estático); **no desplegado** todavía.
+- **K3, parte B (pendiente, acción del propietario — Phase 16 en `FoodC`)**: crear el repositorio público remoto, habilitar GitHub Pages, y la verificación manual en la tablet real.
 
 El backend necesario (`verifyCajaPin`, `getCajaOrders`, `markOrderPaid`, `closeDay`) ya está implementado y probado en `FoodC` (trabajo B1-B3 de `openspec/changes/foodc-caja`), pero **todavía no desplegado a producción** (Phase 8, acción del propietario) al momento de escribir este archivo. El `API_URL` en `js/config.js` queda como placeholder hasta entonces.
 
 ## Deploy
 
-Pendiente (K3): URL publicada será `https://melvinramirez.github.io/foodc-caja/`, habilitada solo después de confirmación explícita del propietario para crear el repositorio público remoto y habilitar GitHub Pages (ver `openspec/changes/foodc-caja/tasks.md` tarea 16.1 en `FoodC`).
+**Todavía no en línea.** URL publicada será `https://melvinramirez.github.io/foodc-caja/` (placeholder, no es un enlace activo hoy), habilitada solo después de confirmación explícita del propietario para crear el repositorio público remoto y habilitar GitHub Pages (ver `openspec/changes/foodc-caja/tasks.md` tarea 16.1 en `FoodC`; esa confirmación de intención ya fue dada por el propietario el 2026-10-15 en la tarea 9.1 — la creación/habilitación real sigue pendiente de ejecución en Phase 16).
+
+### Procedimiento de bump de `CACHE_VERSION`
+
+`sw.js` precachea el app shell completo (HTML, CSS, JS, manifest, íconos) bajo `CACHE_VERSION`. Cada vez que cambie cualquier archivo del shell, `CACHE_VERSION` debe incrementarse **en el mismo commit** (p. ej. `foodc-caja-shell-v1` → `foodc-caja-shell-v2`). El flujo, idéntico a `foodc-kds`:
+
+1. `install` precachea la lista con `{cache: 'reload'}` (bypassea la caché HTTP) y llama `self.skipWaiting()`.
+2. `activate` borra toda caché cuyo nombre empiece con `CACHE_PREFIX` (`foodc-caja-shell-`) y no sea la versión actual, luego llama `self.clients.claim()`.
+3. Como la caja corre horas en una sola pestaña de la tablet, el shell nuevo recién se aplica en la próxima navegación — no hay recarga automática. El checklist de deploy (Phase 16) incluye recargar manualmente la tablet una vez después de cada deploy que toque archivos del shell.

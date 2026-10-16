@@ -46,6 +46,13 @@ export const messages = {
     confirmBody: 'Esta acción archiva los pedidos pagados del día y no se puede deshacer.',
     confirmAccept: 'Sí, cerrar día',
     confirmCancel: 'Cancelar',
+    // Preview shown on the "¿Seguro?" step, from getCajaOrders status:"Pagada"
+    // (optional-for-the-client preview per design.md Decision 3's rationale;
+    // never blocks the close itself if this read fails — see confirmSummaryUnavailable).
+    confirmSummaryLoading: 'Calculando pedidos pagados…',
+    confirmSummary: (count, total) => `Se van a archivar ${count} pedidos pagados por un total de ${total}.`,
+    confirmSummaryUnavailable: 'No se pudo calcular el total a cerrar. Podés continuar de todos modos.',
+    running: 'Procesando el cierre de día…',
     // close.status result states, ver design.md "js/close.js" (classifyCloseResult) y
     // caja-day-close-flow spec.
     done: (count, total) => `Cierre completo: ${count} pedidos archivados por un total de ${total}.`,
