@@ -38,14 +38,14 @@ Este repositorio está en construcción, en orden (mismo patrón que `foodc-kds`
 
 - **K1 (completo)**: scaffold y módulos puros de dominio (`store`, `api`, `pin`, `time`, `config`, `messages`, `queue`, `payment`, `close`, `actions`, `persistence`), sin DOM, sin service worker, sin nada desplegado.
 - **K2 (completo)**: `js/effects.js` — polling, runner de marcado Pagada, orquestación del cierre de día.
-- **K3, parte A (completo)**: vistas (`js/views/*`), `js/main.js` (raíz de composición), `index.html`, CSS de Tailwind, íconos, `manifest.webmanifest` y `sw.js` instalables. Todo probado localmente (`npm test`, smoke de servidor estático); **no desplegado** todavía.
-- **K3, parte B (pendiente, acción del propietario — Phase 16 en `FoodC`)**: crear el repositorio público remoto, habilitar GitHub Pages, y la verificación manual en la tablet real.
+- **K3, parte A (completo)**: vistas (`js/views/*`), `js/main.js` (raíz de composición), `index.html`, CSS de Tailwind, íconos, `manifest.webmanifest` y `sw.js` instalables. Todo probado localmente (`npm test`, smoke de servidor estático) y **desplegado** en GitHub Pages.
+- **K3, parte B (completo)**: repositorio público remoto creado, GitHub Pages habilitado, verificación manual hecha en la tablet real.
 
-El backend necesario (`verifyCajaPin`, `getCajaOrders`, `markOrderPaid`, `closeDay`) ya está implementado y probado en `FoodC` (trabajo B1-B3 de `openspec/changes/foodc-caja`), pero **todavía no desplegado a producción** (Phase 8, acción del propietario) al momento de escribir este archivo. El `API_URL` en `js/config.js` queda como placeholder hasta entonces.
+El backend necesario (`verifyCajaPin`, `getCajaOrders`, `markOrderPaid`, `closeDay`) está implementado, probado y **desplegado a producción** en `FoodC` (trabajo B1-B3 de `openspec/changes/archive/foodc-caja`). El `API_URL` en `js/config.js` apunta al `/exec` real de producción.
 
 ## Deploy
 
-**Todavía no en línea.** URL publicada será `https://melvinramirez.github.io/foodc-caja/` (placeholder, no es un enlace activo hoy), habilitada solo después de confirmación explícita del propietario para crear el repositorio público remoto y habilitar GitHub Pages (ver `openspec/changes/foodc-caja/tasks.md` tarea 16.1 en `FoodC`; esa confirmación de intención ya fue dada por el propietario el 2026-10-15 en la tarea 9.1 — la creación/habilitación real sigue pendiente de ejecución en Phase 16).
+**En línea:** `https://melvinramirez.github.io/foodc-caja/`.
 
 ### Procedimiento de bump de `CACHE_VERSION`
 
