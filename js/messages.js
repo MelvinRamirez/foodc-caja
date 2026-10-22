@@ -25,6 +25,10 @@ export const messages = {
     emptyQueueOk: 'No hay pedidos pendientes de pago',
     emptyQueueStale: 'Sin conexión: no se puede confirmar si hay pedidos pendientes de pago',
   },
+  queue: {
+    allTables: 'Todas',
+    tableButton: (table) => `Mesa ${table}`,
+  },
   payment: {
     payButton: 'Pagada',
     // Mark-Pagada Recovery Policy outcomes, ver caja-payment-queue spec.

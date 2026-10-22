@@ -26,6 +26,62 @@ export function visibleOrders(orders, pending) {
   return orders.filter((order) => !hidden.has(order.order_id));
 }
 
+function tableSortKey(tableNumber) {
+  const n = Number(tableNumber);
+  return Number.isFinite(n) ? n : null;
+}
+
+/**
+ * Compares two table numbers ascending: numerically when both parse as
+ * finite numbers, falling back to a locale-aware alphabetical compare
+ * otherwise (mixed numeric/non-numeric table identifiers).
+ *
+ * @param {string} a
+ * @param {string} b
+ * @returns {number}
+ */
+function compareTables(a, b) {
+  const na = tableSortKey(a);
+  const nb = tableSortKey(b);
+  if (na !== null && nb !== null) return na - nb;
+  return a.localeCompare(b);
+}
+
+/**
+ * Distinct `table_number` values among `orders`, ascending (numeric when
+ * possible, alphabetical otherwise). Used to drive the per-table filter
+ * buttons, which must only show tables with currently visible orders.
+ *
+ * @param {object[]} orders usually the result of `visibleOrders`.
+ * @returns {string[]}
+ */
+export function activeTables(orders) {
+  const seen = new Set();
+  for (const order of orders) {
+    seen.add(String(order.table_number));
+  }
+  return [...seen].sort(compareTables);
+}
+
+/**
+ * Groups `orders` by `table_number`, with groups ordered ascending (same
+ * rule as `activeTables`) and orders preserved in their original relative
+ * (FIFO) order within each group. Does not touch `orders` itself.
+ *
+ * @param {object[]} orders usually the result of `visibleOrders`.
+ * @returns {object[]} a new array, grouped by table, FIFO within each group.
+ */
+export function groupOrdersByTable(orders) {
+  const byTable = new Map();
+  for (const order of orders) {
+    const table = String(order.table_number);
+    if (!byTable.has(table)) byTable.set(table, []);
+    byTable.get(table).push(order);
+  }
+  const tables = [...byTable.keys()].sort(compareTables);
+  return tables.flatMap((table) => byTable.get(table));
+}
+
 function isWellFormedItem(item) {
   return (
     item !== null &&
