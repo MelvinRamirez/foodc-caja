@@ -28,6 +28,11 @@ export const messages = {
   queue: {
     allTables: 'Todas',
     tableButton: (table) => `Mesa ${table}`,
+    tableTotal: (total) => `Total mesa: ${total.toFixed(2)}`,
+    // Shown when tableTotal(orders).isComplete is false (same posture as
+    // close.confirmSummaryUnavailable: flag the total rather than present
+    // it as exact).
+    tableTotalIncomplete: 'Algunos pedidos no tienen importe cargado: el total puede ser parcial.',
   },
   payment: {
     payButton: 'Pagada',

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { hiddenIds, visibleOrders, toCardModel, activeTables, groupOrdersByTable } from '../js/queue.js';
+import { hiddenIds, visibleOrders, toCardModel, activeTables, groupOrdersByTable, tableTotal } from '../js/queue.js';
 
 function order(overrides = {}) {
   return {
@@ -104,6 +104,33 @@ test('groupOrdersByTable: does not mutate the input array', () => {
 
 test('groupOrdersByTable: empty orders yields empty list', () => {
   assert.deepStrictEqual(groupOrdersByTable([]), []);
+});
+
+// --- tableTotal ---
+
+test('tableTotal: sums total_amount across orders and reports complete', () => {
+  const orders = [
+    order({ order_id: 'A', total_amount: 100 }),
+    order({ order_id: 'B', total_amount: 50.5 }),
+  ];
+  assert.deepStrictEqual(tableTotal(orders), { total: 150.5, isComplete: true });
+});
+
+test('tableTotal: empty orders yields a zero complete total', () => {
+  assert.deepStrictEqual(tableTotal([]), { total: 0, isComplete: true });
+});
+
+test('tableTotal: excludes an order with a non-finite total_amount and flags incomplete', () => {
+  const orders = [
+    order({ order_id: 'A', total_amount: 100 }),
+    order({ order_id: 'B', total_amount: 'not-a-number' }),
+  ];
+  assert.deepStrictEqual(tableTotal(orders), { total: 100, isComplete: false });
+});
+
+test('tableTotal: a numeric string total_amount is parsed and included', () => {
+  const orders = [order({ order_id: 'A', total_amount: '75.25' })];
+  assert.deepStrictEqual(tableTotal(orders), { total: 75.25, isComplete: true });
 });
 
 // --- toCardModel: Payment Card Content ---

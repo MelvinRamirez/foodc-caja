@@ -1,5 +1,5 @@
 import { messages } from '../messages.js';
-import { visibleOrders, toCardModel, activeTables, groupOrdersByTable } from '../queue.js';
+import { visibleOrders, toCardModel, activeTables, groupOrdersByTable, tableTotal } from '../queue.js';
 import { select } from '../store.js';
 import { el } from './dom.js';
 import { createCardNode, updateCardNode } from './order-card-view.js';
@@ -151,6 +151,26 @@ export function mountQueueView(root, store, handlers) {
 
     if (tables.length > 0) {
       root.appendChild(buildFilterRow(tables));
+    }
+
+    if (selectedTable !== null) {
+      const { total, isComplete } = tableTotal(ordered);
+      root.appendChild(
+        el(
+          'p',
+          { class: 'queue-view__table-total text-lg font-bold text-slate-900', role: 'status' },
+          [messages.queue.tableTotal(total)],
+        ),
+      );
+      if (!isComplete) {
+        root.appendChild(
+          el(
+            'p',
+            { class: 'queue-view__table-total-warning text-xs font-semibold text-amber-700', role: 'status' },
+            [messages.queue.tableTotalIncomplete],
+          ),
+        );
+      }
     }
 
     const grid = el('div', {
