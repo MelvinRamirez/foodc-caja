@@ -1,0 +1,159 @@
+# Caja order prepay (show prepaid orders in context, by payment status)
+
+## Objective
+
+The `FoodC` backend (sibling repo, branch `feat/caja-order-prepay`, already
+implemented and merged-ready) now lets a diner pay for an order at the
+moment it's placed, before the kitchen finishes it. It decoupled payment
+from kitchen status: `Orders` rows now carry both `status`
+(`Pendiente`/`Completado`, kitchen) and `payment_status`
+(`Pendiente`/`Pagada`, money), independently. This task updates the
+`foodc-caja` frontend to match that new backend contract and to show the
+cashier both unpaid and already-paid orders in one screen, with a visible
+kitchen-status hint on each.
+
+## Breaking backend contract change this frontend must follow
+
+`getCajaOrders`'s body param is renamed `status` -> `payment_status`
+(values `Pendiente`/`Pagada`, default `Pendiente` when omitted). Every
+returned order object now also carries `payment_status` alongside the
+existing `status`. This frontend is currently on the OLD contract
+(`js/api.js`'s `getCajaOrders(status)` sends `{action, status, pin}`) — it
+will send a now-meaningless param and get back only the unpaid-regardless-
+of-kitchen-status set, with no paid orders ever shown, once the new backend
+is deployed. This task closes that gap.
+
+## Current architecture (confirmed by reading the code, not guessing)
+
+- `js/api.js` `getCajaOrders(status)`: today sends `{action:'getCajaOrders',
+  status, pin}` (or no `status` key at all, meaning the OLD backend default
+  "Completado"). `js/main.js`'s poll loop (`effects.js` `pollOnce`) calls it
+  with NO argument (today: all unpaid-and-kitchen-done orders). A second,
+  separate call, `main.js`'s `fetchPagadaSummary`, calls
+  `getCajaOrders('Pagada')` only for the close-dialog preview
+  (`close-view.js` `summarizePagadaPreview`), never for the main queue.
+- The main queue (`js/views/queue-view.js` + `js/queue.js` +
+  `js/views/order-card-view.js`) renders ONE grid of cards, grouped by
+  table, each card always showing a "Pagada" button (`js/views/
+  order-card-view.js` `createCardNode`) — because today every card the
+  queue ever receives is, by construction, unpaid. There is currently no
+  `status`/`payment_status` field read anywhere in `toCardModel` or the card
+  view at all.
+- `js/queue.js`'s optimistic-hide mechanism (`hiddenIds`/`visibleOrders`,
+  consulted against `state.payment.pending`) hides a card by `order_id`
+  while its `markOrderPaid` call is in flight/retrying. This is unrelated
+  to the new `payment_status` field (it is a client-side "I just pressed
+  pay, don't flicker" mechanism) and needs no change.
+- `close-view.js`'s `summarizePagadaPreview` sums/counts every order in the
+  `getCajaOrders('Pagada')` response as "what the close will archive."
+  **This will become wrong once the backend's close guard requires BOTH
+  `payment_status===Pagada` AND `status===Completado`** (a prepaid order
+  still cooking is `Pagada` but not archived) — this preview must be
+  corrected as part of this task, not left to silently overcount.
+
+## Scope
+
+1. **`js/api.js`**: rename `getCajaOrders(status)` ->
+   `getCajaOrders(paymentStatus)`; body key `status` -> `payment_status`.
+   `main.js`'s `fetchPagadaSummary` call site updates its argument name
+   only (still passes the literal `'Pagada'` string — unchanged value,
+   same semantics: "give me every currently-paid order").
+2. **`js/effects.js` `pollOnce`**: the main poll must show BOTH unpaid and
+   paid orders together (that's the actual ask — Caja sees both, in
+   context). Fetch `ctx.api.getCajaOrders('Pendiente')` and
+   `ctx.api.getCajaOrders('Pagada')` concurrently (`Promise.all`) each poll
+   tick; the poll is a success only if BOTH resolve `kind:'success'` (merge
+   `.data` arrays, dispatch the existing `actions.pollSucceeded` with the
+   merged array — no new action needed); if either fails, the whole poll
+   tick fails using the existing `mapPollFailureKind`/`pollFailed` path,
+   preferring the more specific of the two failures if they differ (same
+   precedence as the existing priority: `UNAUTHORIZED` > contract > other —
+   use your judgment and document the choice in your report, this exact
+   tie-break isn't specified further). Do not change `startPaymentRunner`
+   (markOrderPaid flow) at all — it's independent of this listing change.
+3. **`js/queue.js` `toCardModel`**: add `paymentStatus: order.payment_status`
+   and `kitchenStatus: order.status` to the returned card model (plain
+   passthrough of the two existing string fields the backend now always
+   sends; no new validation logic — the existing `isWellFormedItem` etc.
+   stay untouched).
+4. **`js/views/order-card-view.js`**: when `cardModel.paymentStatus ===
+   'Pagada'`, DO NOT render the "Pagada" pay button — the order is already
+   paid. Instead render a small paid badge (e.g. text "✓ Pagada", reuse the
+   existing Tailwind utility-class style of `order-card__notes` for
+   positioning/visual weight, but its own distinct class
+   `order-card__paid-badge`) AND a kitchen-status indicator next to the
+   table number/timer in the header (e.g. "En cocina" when `kitchenStatus
+   === 'Pendiente'`, "Lista" when `'Completado'`) using a new
+   `order-card__kitchen-status` class. When `paymentStatus === 'Pendiente'`
+   (the normal, today's case), render exactly as today — pay button, no
+   paid badge. `updateCardNode` must also correctly add/remove/update the
+   badge and kitchen-status indicator when a REUSED card's `cardModel`
+   changes between polls (same pattern as its existing notes
+   add/replace/remove branches).
+5. **`js/messages.js`**: add the new UI copy under `payment.*` (e.g.
+   `paidBadge: 'Pagada'` — note this is a DIFFERENT message key from the
+   existing `payButton: 'Pagada'`, keep both, they serve different roles
+   now) and `kitchenStatus.pending`/`kitchenStatus.done` (wording your
+   call, consistent with the existing terse cashier-facing tone elsewhere in
+   this file — e.g. "En cocina" / "Lista").
+6. **`js/views/close-view.js` `summarizePagadaPreview`**: filter
+   `apiResult.data` to `order.status === 'Completado'` before
+   counting/summing — matching exactly what the backend's close guard will
+   actually archive, so the "¿Seguro?" preview never overstates what's
+   about to be closed.
+7. **Tests**: update `test/api.test.mjs` (param rename), `test/effects.test.mjs`
+   (the dual-fetch poll behavior, both-must-succeed rule, and the merge),
+   `test/queue.test.mjs` (`toCardModel`'s two new fields), and
+   `test/close.test.mjs` (`summarizePagadaPreview`'s new filter). There are
+   no existing DOM-level tests for `order-card-view.js`/`queue-view.js`
+   (confirmed: no such test files exist) — don't invent a new test
+   framework/harness for them; a judgment call, not an oversight.
+8. **Docs**: if this repo's `openspec/specs/caja-payment-queue/spec.md` (or
+   equivalent) documents the single-fetch/single-status poll contract,
+   update it to describe the dual-fetch/merged-queue behavior and the new
+   card states. If no such spec exists in this repo, skip — don't invent
+   one.
+
+## Explicitly out of scope
+
+- The `FoodC` backend repo itself — already done, this task only consumes
+  its new contract.
+- Any new screen/tab/toggle. One merged queue, badge-differentiated, per
+  Melvin's confirmed design (2026-10-24 conversation): "mismo diseño de
+  tarjeta, pero sin el botón de cobro... un badge chico tipo 'Pagada'... y
+  un indicador del estado de cocina."
+- Re-deploying/pointing `js/config.js`'s `API_URL` at the new backend — that
+  happens after the backend's own Apps Script Web App redeploy, a separate
+  manual step, not part of this frontend task.
+
+## Tasks
+
+- [x] T1: `js/api.js` — rename `getCajaOrders` param to `payment_status`;
+      update `main.js`'s `fetchPagadaSummary` call site.
+- [ ] T2: `js/effects.js` — dual-fetch (`Pendiente` + `Pagada`) merged poll.
+- [ ] T3: `js/queue.js` — `toCardModel` carries `paymentStatus`/`kitchenStatus`.
+- [ ] T4: `js/views/order-card-view.js` — conditional pay button vs. paid
+      badge + kitchen-status indicator, for both new-card and reused-card
+      (`updateCardNode`) paths.
+- [ ] T5: `js/messages.js` — new copy keys.
+- [ ] T6: `js/views/close-view.js` — `summarizePagadaPreview` filters to
+      kitchen-`Completado` before counting/summing.
+- [ ] T7: Tests updated across `api`/`effects`/`queue`/`close` test files;
+      `npm test` passes with 0 failures.
+- [ ] T8: Docs — update `caja-payment-queue` spec if it exists here and
+      documents the single-fetch contract; skip if it doesn't exist.
+
+## Verification
+
+- `npm test` (Node's built-in test runner, `test/**/*.test.mjs`) passes, 0
+  failures.
+
+## TDD mode
+
+No enforced TDD convention observed beyond the existing per-module
+`*.test.mjs` suites already in this repo. Ordinary functional checks (full
+test suite) at each task's close.
+
+## Status
+
+2026-10-24: Started. Branch `feat/caja-order-prepay` created off `main`.
