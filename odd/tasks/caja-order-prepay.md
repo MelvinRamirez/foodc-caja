@@ -136,7 +136,7 @@ is deployed. This task closes that gap.
       badge + kitchen-status indicator, for both new-card and reused-card
       (`updateCardNode`) paths.
 - [x] T5: `js/messages.js` — new copy keys.
-- [ ] T6: `js/views/close-view.js` — `summarizePagadaPreview` filters to
+- [x] T6: `js/views/close-view.js` — `summarizePagadaPreview` filters to
       kitchen-`Completado` before counting/summing.
 - [ ] T7: Tests updated across `api`/`effects`/`queue`/`close` test files;
       `npm test` passes with 0 failures.
