@@ -54,7 +54,7 @@ function renderPaidBadge(cardModel) {
   return el(
     'p',
     {
-      class: 'order-card__paid-badge rounded-lg bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-900',
+      class: 'order-card__paid-badge rounded-lg bg-emerald-100 px-2 py-1 text-2xl font-semibold text-emerald-900',
       'data-role': 'paid-badge',
     },
     [messages.payment.paidBadge],
@@ -72,11 +72,15 @@ function renderPaidBadge(cardModel) {
  */
 function renderKitchenStatus(cardModel) {
   if (cardModel.paymentStatus !== 'Pagada') return null;
-  const text = cardModel.kitchenStatus === 'Completado' ? messages.kitchenStatus.done : messages.kitchenStatus.pending;
+  const isDone = cardModel.kitchenStatus === 'Completado';
+  const text = isDone ? messages.kitchenStatus.done : messages.kitchenStatus.pending;
+  // "En cocina" (still pending) gets a red background/white text so it
+  // stands out from "Lista", which keeps the neutral slate styling.
+  const colorClass = isDone ? 'bg-slate-100 text-slate-700' : 'bg-red-600 text-white';
   return el(
     'span',
     {
-      class: 'order-card__kitchen-status rounded-lg bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700',
+      class: `order-card__kitchen-status rounded-lg px-2 py-1 text-xs font-semibold ${colorClass}`,
       'data-role': 'kitchen-status',
     },
     [text],
