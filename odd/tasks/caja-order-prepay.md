@@ -131,7 +131,7 @@ is deployed. This task closes that gap.
 - [x] T1: `js/api.js` — rename `getCajaOrders` param to `payment_status`;
       update `main.js`'s `fetchPagadaSummary` call site.
 - [x] T2: `js/effects.js` — dual-fetch (`Pendiente` + `Pagada`) merged poll.
-- [ ] T3: `js/queue.js` — `toCardModel` carries `paymentStatus`/`kitchenStatus`.
+- [x] T3: `js/queue.js` — `toCardModel` carries `paymentStatus`/`kitchenStatus`.
 - [ ] T4: `js/views/order-card-view.js` — conditional pay button vs. paid
       badge + kitchen-status indicator, for both new-card and reused-card
       (`updateCardNode`) paths.
