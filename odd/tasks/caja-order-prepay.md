@@ -132,10 +132,10 @@ is deployed. This task closes that gap.
       update `main.js`'s `fetchPagadaSummary` call site.
 - [x] T2: `js/effects.js` — dual-fetch (`Pendiente` + `Pagada`) merged poll.
 - [x] T3: `js/queue.js` — `toCardModel` carries `paymentStatus`/`kitchenStatus`.
-- [ ] T4: `js/views/order-card-view.js` — conditional pay button vs. paid
+- [x] T4: `js/views/order-card-view.js` — conditional pay button vs. paid
       badge + kitchen-status indicator, for both new-card and reused-card
       (`updateCardNode`) paths.
-- [ ] T5: `js/messages.js` — new copy keys.
+- [x] T5: `js/messages.js` — new copy keys.
 - [ ] T6: `js/views/close-view.js` — `summarizePagadaPreview` filters to
       kitchen-`Completado` before counting/summing.
 - [ ] T7: Tests updated across `api`/`effects`/`queue`/`close` test files;
