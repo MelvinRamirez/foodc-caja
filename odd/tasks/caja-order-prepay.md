@@ -185,6 +185,28 @@ failure has the lower (more specific) rank — reusing this poll's own
 pre-existing single-fetch priority order instead of inventing a new one,
 since the task explicitly left this unspecified.
 
-Not re-deployed: `js/config.js`'s `API_URL` still points at the old
-backend, per scope — that's a separate manual step after the backend's own
-redeploy.
+`js/config.js`'s `API_URL` needed no change: it already pointed at the
+stable `/exec` URL, which the backend redeploy kept unchanged (same
+deployment id, new version `@10`).
+
+## Follow-up visual tweaks (post-deploy, from Melvin's live testing)
+
+2026-10-24: After testing the live prepay flow on the real cashier device,
+Melvin asked for two card tweaks: "En cocina" on a red background with
+white text (to stand out more than the neutral slate it had), and the
+"Pagada" badge text/symbol doubled in size (`text-xs` -> `text-2xl`).
+Implemented directly in `js/views/order-card-view.js`
+(`renderKitchenStatus`/`renderPaidBadge`), commit `4547376`
+("style(card): highlight pending kitchen status and enlarge paid badge").
+`npm test` 228/228 unchanged (no DOM-level test asserts these exact
+classes). Merged to `main`, pushed, GitHub Pages rebuilt and confirmed
+serving the updated classes.
+
+## Status
+
+2026-10-24: **Done.** Merged to `main` in both `FoodC` and `foodc-caja`,
+pushed, backend redeployed live (same `/exec` URL, version `@10`), frontend
+rebuilt on GitHub Pages. End-to-end prepay flow confirmed working by Melvin
+on the real cashier device, including the two follow-up visual tweaks.
+Nothing outstanding. The only known follow-up item from the original scope
+boundary (frontend contract rename) is itself this task — already closed.
