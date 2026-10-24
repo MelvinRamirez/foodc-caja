@@ -9,7 +9,8 @@ import { el } from './dom.js';
  * @returns {string} '--' when `n` is not a finite number.
  */
 function formatTotal(n) {
-  return typeof n === 'number' && Number.isFinite(n) ? n.toFixed(2) : '--';
+  // Lempira hondureña (HNL), misma convención que foodc-cliente's CURRENCY_SYMBOL.
+  return typeof n === 'number' && Number.isFinite(n) ? 'L' + n.toFixed(2) : '--';
 }
 
 /**

@@ -10,7 +10,8 @@ const BASE_CARD_CLASS =
  * @returns {string} `'--'` when the amount is missing/non-finite.
  */
 function formatTotal(totalAmount) {
-  return typeof totalAmount === 'number' && Number.isFinite(totalAmount) ? totalAmount.toFixed(2) : '--';
+  // Lempira hondureña (HNL), misma convención que foodc-cliente's CURRENCY_SYMBOL.
+  return typeof totalAmount === 'number' && Number.isFinite(totalAmount) ? 'L' + totalAmount.toFixed(2) : '--';
 }
 
 function renderItems(cardModel) {
