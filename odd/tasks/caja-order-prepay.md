@@ -138,10 +138,15 @@ is deployed. This task closes that gap.
 - [x] T5: `js/messages.js` — new copy keys.
 - [x] T6: `js/views/close-view.js` — `summarizePagadaPreview` filters to
       kitchen-`Completado` before counting/summing.
-- [ ] T7: Tests updated across `api`/`effects`/`queue`/`close` test files;
-      `npm test` passes with 0 failures.
-- [ ] T8: Docs — update `caja-payment-queue` spec if it exists here and
+- [x] T7: Tests updated across `api`/`effects`/`queue`/`close` test files;
+      `npm test` passes with 0 failures. (Done incrementally alongside
+      T1/T2/T3/T6's own commits; final full run: 228 passed, 0 failed.)
+- [x] T8: Docs — update `caja-payment-queue` spec if it exists here and
       documents the single-fetch contract; skip if it doesn't exist.
+      Confirmed no `openspec/` directory exists anywhere in this repo
+      (`find . -iname "*caja-payment-queue*"` and `find openspec/specs`
+      both empty) — skipped per the task file's explicit instruction, not
+      an oversight.
 
 ## Verification
 
@@ -157,3 +162,29 @@ test suite) at each task's close.
 ## Status
 
 2026-10-24: Started. Branch `feat/caja-order-prepay` created off `main`.
+
+2026-10-24: CLOSED. All T1-T8 complete. `npm test`: 228 passed, 0 failed, 0
+skipped (started at 217, grew as T1/T2/T3/T6 each added coverage for their
+own change). T8 (docs) skipped per its own instruction: no `openspec/`
+directory exists anywhere in this repo, confirmed via `find`.
+
+Commits (newest last):
+- 22f5bad feat(api): rename getCajaOrders param to payment_status (T1)
+- 2db0a1b feat(queue): poll both payment statuses and merge results (T2)
+- a4d47c7 feat(queue): carry paymentStatus and kitchenStatus in toCardModel (T3)
+- d03bb9f feat(messages): add paid badge and kitchen status copy (T5)
+- 4d6d95e feat(card): show paid badge and kitchen status instead of pay button (T4)
+- a9e04f9 fix(close): filter pagada preview to kitchen-completado orders (T6)
+
+T2 failure tie-break judgment call: when the two concurrent
+`getCajaOrders('Pendiente')`/`getCajaOrders('Pagada')` calls both fail and
+differ, `pollFailureRank` in `js/effects.js` ranks a relock-triggering
+UNAUTHORIZED (0) above `PIN_NOT_CONFIGURED` (1) above a contract-bug code
+(2) above everything else/transient (3), and the poll reports whichever
+failure has the lower (more specific) rank — reusing this poll's own
+pre-existing single-fetch priority order instead of inventing a new one,
+since the task explicitly left this unspecified.
+
+Not re-deployed: `js/config.js`'s `API_URL` still points at the old
+backend, per scope — that's a separate manual step after the backend's own
+redeploy.
